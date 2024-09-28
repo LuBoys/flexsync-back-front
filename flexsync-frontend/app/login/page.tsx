@@ -21,8 +21,8 @@ export default function CoachLoginPage() {
     <div className="flex items-center justify-center h-screen">
       <div className="w-full max-w-md space-y-8 p-8 bg-white rounded-xl shadow-lg">
         <div className="flex flex-col items-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-900">Connexion Coach</h2>
-          <p className="text-sm text-gray-600">Entrez vos identifiants pour accéder à votre espace coach</p>
+          <h2 className="text-2xl font-bold text-gray-900">Connexion</h2>
+          <p className="text-sm text-gray-600">Entrez vos identifiants pour accéder à votre espace</p>
         </div>
         <form onSubmit={onSubmit} className="space-y-6">
           <div className="space-y-2">
@@ -32,7 +32,7 @@ export default function CoachLoginPage() {
             <Input
               id="email"
               type="email"
-              placeholder="coach@exemple.com"
+              placeholder="johndoe@exemple.com"
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
