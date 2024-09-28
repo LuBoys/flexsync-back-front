@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./flexsync-backend
+    container_name: flexsync-backend
+    ports:
+      - '5000:5000'
+    env_file:
+      - ./flexsync-backend/.env # Charge les variables d'environnement depuis .env
+    depends_on:
+      - db
+    volumes:
+      - ./flexsync-backend:/usr/src/app
+      - /usr/src/app/node_modules  # Ignore node_modules local pour éviter les conflits
+    networks:
+      - flexsync-network
+
+  frontend:
+    build: ./flexsync-frontend
+    container_name: flexsync-frontend
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend
+    volumes:
+      - ./flexsync-frontend:/usr/src/app
+    networks:
+      - flexsync-network
+
+  db:
+    image: mysql:8
+    container_name: flexsync-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: flexsync_db
+    ports:
+      - '3306:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - flexsync-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - flexsync-network
+
+networks:
+  flexsync-network:
+
+volumes:
+  db_data:

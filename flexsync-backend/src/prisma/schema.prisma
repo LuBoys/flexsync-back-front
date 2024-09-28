@@ -1,0 +1,308 @@
+// datasource : Utilise MySQL ou PostgreSQL selon ta configuration
+datasource db {
+  provider = "mysql" // Ou "postgresql" selon la base de données utilisée
+  url      = env("DATABASE_URL") // Utilise la variable d'environnement pour la connexion
+}
+
+// client generator : Génère le client Prisma que tu utiliseras pour interagir avec la base de données
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums : Énumérations pour gérer des états fixes
+enum SubscriptionStatus {
+  active     // Abonnement actif
+  inactive   // Abonnement inactif
+  cancelled  // Abonnement annulé
+}
+
+enum PaymentStatus {
+  successful // Paiement réussi
+  failed     // Paiement échoué
+  pending    // Paiement en attente
+}
+
+// Modèles (tables SQL) : Définition de chaque modèle de la base de données
+
+// Modèle User : Représente les utilisateurs (clients et coachs)
+model User {
+  user_id          Int           @id @default(autoincrement()) // Identifiant auto-incrémenté
+  email            String        @unique // Email unique pour chaque utilisateur
+  password_hash    String        // Mot de passe haché
+  first_name       String        // Prénom de l'utilisateur
+  last_name        String        // Nom de famille de l'utilisateur
+  phone_number     String?       // Numéro de téléphone (facultatif)
+  profile_picture  String?       // Lien vers la photo de profil (facultatif)
+  bio              String?       // Biographie de l'utilisateur (facultatif)
+  specializations  String?       // Spécialisation (utile pour les coachs, facultatif)
+  certifications   String?       // Certifications (utile pour les coachs, facultatif)
+  experience_years Int?          // Années d'expérience (utile pour les coachs, facultatif)
+  location         String?       // Localisation de l'utilisateur (facultatif)
+  created_at       DateTime      @default(now()) // Date de création de l'utilisateur
+  updated_at       DateTime      @updatedAt // Mis à jour automatiquement à chaque modification
+
+  // Relations : Les relations avec d'autres tables
+  userRoles            UserRole[] // Un utilisateur peut avoir plusieurs rôles (client, coach)
+  paymentMethods       PaymentMethod[] // Un utilisateur peut avoir plusieurs méthodes de paiement
+  measurements         Measurement[] // Un utilisateur peut avoir plusieurs mesures corporelles
+  notifications        NotificationSql[] // Notifications de l'utilisateur
+  coachOffers          CoachOffer[] @relation("CoachOffers") // Si c'est un coach, il peut proposer plusieurs offres
+  subscriptionsAsClient  Subscription[] @relation("SubscriptionsAsClient") // Un utilisateur client a plusieurs abonnements
+  subscriptionsAsCoach   Subscription[] @relation("SubscriptionsAsCoach") // Un utilisateur coach a plusieurs abonnements
+  workouts              Workout[] // Nouvelles tables ajoutées
+  progressPictures      ProgressPicture[] // Nouvelles tables ajoutées
+}
+
+// Modèle Workout : Stocke les séries, répétitions et charges de travail
+model Workout {
+  workout_id      Int       @id @default(autoincrement()) // ID de l'entraînement
+  user_id         Int       // ID de l'utilisateur qui effectue l'entraînement
+  exercise_name   String    // Nom de l'exercice
+  series          Int       // Nombre de séries
+  repetitions     Int       // Nombre de répétitions
+  weight          Decimal   @db.Decimal(5, 2) // Poids utilisé pendant l'exercice
+  workout_date    DateTime  @default(now()) // Date de l'entraînement
+  created_at      DateTime  @default(now()) // Date de création de l'entraînement
+
+  // Relations
+  user User @relation(fields: [user_id], references: [user_id]) // Lien avec l'utilisateur
+
+  @@index([user_id])
+}
+
+// Modèle ProgressPicture : Stocke les photos avant-après des clients
+model ProgressPicture {
+  picture_id     Int       @id @default(autoincrement()) // ID de la photo
+  user_id        Int       // ID de l'utilisateur
+  picture_url    String    // URL de la photo
+  taken_at       DateTime  @default(now()) // Date à laquelle la photo a été prise
+  created_at     DateTime  @default(now()) // Date de création de l'enregistrement
+
+  // Relations
+  user User @relation(fields: [user_id], references: [user_id]) // Lien avec l'utilisateur
+
+  @@index([user_id])
+}
+
+// Modèle Role : Représente les rôles d'un utilisateur (coach, client)
+model Role {
+  role_id   Int       @id @default(autoincrement()) // ID du rôle
+  role_name String    // Nom du rôle (ex: "coach" ou "client")
+
+  userRoles UserRole[] // Association avec plusieurs utilisateurs
+}
+
+// Modèle UserRole : Associe un utilisateur à un rôle
+model UserRole {
+  user_id Int // ID de l'utilisateur
+  role_id Int // ID du rôle
+
+  user User @relation(fields: [user_id], references: [user_id]) // Lien avec le modèle User
+  role Role @relation(fields: [role_id], references: [role_id]) // Lien avec le modèle Role
+
+  @@id([user_id, role_id]) // Clé composée pour éviter les doublons
+}
+
+// Modèle Currency : Gère les devises utilisées pour les paiements
+model Currency {
+  currency_id   Int      @id @default(autoincrement()) // ID de la devise
+  currency_code String   @unique // Code de devise unique (ex: "USD", "EUR")
+  currency_name String   // Nom de la devise (ex: "Dollar US")
+
+  coachOffers          CoachOffer[] // Offres liées à cette devise
+  offerOptions         OfferOption[] // Options liées à cette devise
+  subscriptions        Subscription[] // Abonnements liés à cette devise
+  subscriptionOptions  SubscriptionOption[] // Options d'abonnement liées à cette devise
+  payments             Payment[] // Paiements liés à cette devise
+}
+
+// Modèle CoachOffer : Les offres créées par les coachs
+model CoachOffer {
+  offer_id    Int       @id @default(autoincrement()) // ID de l'offre
+  coach_id    Int       // ID du coach qui a créé l'offre
+  title       String    // Titre de l'offre (ex: "Programme de remise en forme")
+  description String?   // Description de l'offre
+  base_price  Decimal    @db.Decimal(10, 2) // Prix de base de l'offre
+  currency_id Int       // Devise de l'offre
+  created_at  DateTime  @default(now()) // Date de création de l'offre
+  updated_at  DateTime  @updatedAt // Date de mise à jour automatique
+
+  // Relations
+  coach        User          @relation("CoachOffers", fields: [coach_id], references: [user_id]) // Coach lié à l'offre
+  currency     Currency      @relation(fields: [currency_id], references: [currency_id]) // Devise liée à l'offre
+  offerOptions OfferOption[] // Options liées à l'offre (ex: différentes durées ou niveaux)
+  subscriptions Subscription[] // Abonnements basés sur cette offre
+
+  @@index([coach_id]) // Index sur coach_id pour améliorer les performances
+  @@index([currency_id]) // Index sur currency_id
+}
+
+// Modèle OfferOption : Options supplémentaires pour les offres des coachs
+model OfferOption {
+  option_id          Int       @id @default(autoincrement()) // ID de l'option
+  offer_id           Int       // ID de l'offre associée
+  option_name        String    // Nom de l'option (ex: "Programme intensif")
+  option_description String?   // Description de l'option
+  option_price       Decimal    @db.Decimal(10, 2) // Prix de l'option
+  currency_id        Int       // Devise de l'option
+  created_at         DateTime  @default(now()) // Date de création
+  updated_at         DateTime  @updatedAt // Date de mise à jour automatique
+
+  // Relations
+  offer             CoachOffer          @relation(fields: [offer_id], references: [offer_id]) // L'offre à laquelle l'option est liée
+  currency          Currency            @relation(fields: [currency_id], references: [currency_id]) // La devise de l'option
+  subscriptionOptions SubscriptionOption[] // Options d'abonnement liées à cette option
+  invoiceItems       InvoiceItem[]  // Chaque option peut être utilisée dans plusieurs factures
+
+  @@index([offer_id])
+  @@index([currency_id])
+}
+
+// Modèle Subscription : Gère les abonnements entre les clients et les coachs
+model Subscription {
+  subscription_id Int      @id @default(autoincrement()) // ID de l'abonnement
+  client_id       Int      // ID du client abonné
+  coach_id        Int      // ID du coach
+  offer_id        Int      // ID de l'offre à laquelle l'abonnement est associé
+  start_date      DateTime // Date de début de l'abonnement
+  end_date        DateTime? // Date de fin de l'abonnement (facultatif)
+  status          SubscriptionStatus // Statut de l'abonnement (active, inactive, cancelled)
+  total_price     Decimal    @db.Decimal(10, 2) // Prix total de l'abonnement
+  currency_id     Int      // Devise utilisée pour l'abonnement
+  created_at      DateTime  @default(now()) // Date de création de l'abonnement
+  updated_at      DateTime  @updatedAt // Date de mise à jour automatique
+
+  // Relations
+  client      User       @relation("SubscriptionsAsClient", fields: [client_id], references: [user_id]) // Client abonné
+  coach       User       @relation("SubscriptionsAsCoach", fields: [coach_id], references: [user_id]) // Coach responsable
+  offer       CoachOffer @relation(fields: [offer_id], references: [offer_id]) // Offre liée à l'abonnement
+  currency    Currency   @relation(fields: [currency_id], references: [currency_id]) // Devise de l'abonnement
+  subscriptionOptions SubscriptionOption[] // Options d'abonnement supplémentaires
+  payments            Payment[] // Paiements liés à cet abonnement
+
+  @@index([client_id]) // Index pour accélérer la recherche par client
+  @@index([coach_id]) // Index pour accélérer la recherche par coach
+  @@index([offer_id]) // Index pour accélérer la recherche par offre
+  @@index([currency_id]) // Index pour accélérer la recherche par devise
+}
+
+// Modèle SubscriptionOption : Gère les options supplémentaires d'abonnement
+model SubscriptionOption {
+  subscription_option_id Int      @id @default(autoincrement()) // ID de l'option d'abonnement
+  subscription_id        Int      // ID de l'abonnement associé
+  option_id              Int      // ID de l'option choisie
+  option_price           Decimal    @db.Decimal(10, 2) // Prix de l'option
+  currency_id            Int      // Devise de l'option
+  created_at             DateTime @default(now()) // Date de création
+
+  // Relations
+  subscription Subscription @relation(fields: [subscription_id], references: [subscription_id]) // Lien avec l'abonnement
+  option       OfferOption  @relation(fields: [option_id], references: [option_id]) // Lien avec l'option choisie
+  currency     Currency     @relation(fields: [currency_id], references: [currency_id]) // Devise utilisée pour cette option
+
+  @@index([subscription_id])
+  @@index([option_id])
+  @@index([currency_id])
+}
+
+// Modèle PaymentMethod : Méthodes de paiement associées à un utilisateur
+model PaymentMethod {
+  payment_method_id Int      @id @default(autoincrement()) // ID de la méthode de paiement
+  user_id           Int      // ID de l'utilisateur
+  method_type       String   // Type de méthode de paiement (ex: "carte bancaire")
+  details           Json     // Détails de la méthode (ex: token Stripe)
+  created_at        DateTime @default(now()) // Date de création
+
+  // Relations
+  user      User      @relation(fields: [user_id], references: [user_id]) // Utilisateur lié à la méthode de paiement
+  payments  Payment[] // Paiements effectués avec cette méthode
+
+  @@index([user_id]) // Index sur user_id pour accélérer la recherche par utilisateur
+}
+
+// Modèle Payment : Gère les paiements effectués pour les abonnements
+model Payment {
+  payment_id        Int       @id @default(autoincrement()) // ID du paiement
+  subscription_id   Int       // ID de l'abonnement
+  payment_method_id Int       // ID de la méthode de paiement utilisée
+  amount            Decimal    @db.Decimal(10, 2) // Montant du paiement
+  currency_id       Int       // Devise utilisée pour le paiement
+  payment_date      DateTime  // Date du paiement
+  status            PaymentStatus // Statut du paiement (success, failed, pending)
+  stripe_payment_id String?   // ID de transaction Stripe (facultatif)
+  created_at        DateTime  @default(now()) // Date de création
+  updated_at        DateTime  @updatedAt // Date de mise à jour automatique
+
+  // Relations
+  subscription   Subscription  @relation(fields: [subscription_id], references: [subscription_id]) // Abonnement lié au paiement
+  paymentMethod  PaymentMethod @relation(fields: [payment_method_id], references: [payment_method_id]) // Méthode de paiement utilisée
+  currency       Currency      @relation(fields: [currency_id], references: [currency_id]) // Devise du paiement
+  invoice        Invoice? // Facture liée au paiement (facultatif)
+
+  @@index([subscription_id]) // Index pour accélérer la recherche par abonnement
+  @@index([payment_method_id]) // Index pour accélérer la recherche par méthode de paiement
+  @@index([currency_id]) // Index pour accélérer la recherche par devise
+}
+
+// Modèle Invoice : Factures liées aux paiements
+model Invoice {
+  invoice_id     Int      @id @default(autoincrement()) // ID de la facture
+  payment_id     Int      @unique // ID du paiement associé (unique)
+  invoice_number String   @unique // Numéro unique de la facture
+  invoice_date   DateTime // Date de la facture
+  pdf_url        String?  // Lien vers le PDF de la facture (facultatif)
+  created_at     DateTime @default(now()) // Date de création
+
+  // Relations
+  payment   Payment @relation(fields: [payment_id], references: [payment_id]) // Lien avec le paiement
+
+  invoiceItems InvoiceItem[] // Les éléments de la facture (ex: détails des services facturés)
+}
+
+model InvoiceItem {
+  invoice_item_id Int       @id @default(autoincrement())
+  invoice_id      Int       // Référence à la facture
+  description     String    // Description de l'option (ex: "Suivi personnalisé")
+  amount          Decimal   @db.Decimal(10, 2) // Montant de l'item (ex: 30.00)
+  created_at      DateTime  @default(now())
+
+  // Nouvelle relation avec OfferOption
+  option_id       Int       // L'option choisie qui correspond à cet item
+  option          OfferOption @relation(fields: [option_id], references: [option_id]) // Lien vers l'option choisie
+
+  invoice         Invoice   @relation(fields: [invoice_id], references: [invoice_id]) // Lien avec la facture
+}
+
+
+// Modèle Measurement : Mesures corporelles liées à un utilisateur (utile pour les coachings)
+model Measurement {
+  measurement_id       Int       @id @default(autoincrement()) // ID de la mesure
+  user_id              Int       // ID de l'utilisateur
+  date                 DateTime  // Date de la mesure
+  weight               Decimal?    @db.Decimal(5, 2) // Poids de l'utilisateur (facultatif)
+  body_fat_percentage  Decimal?    @db.Decimal(5, 2) // Pourcentage de graisse corporelle (facultatif)
+  muscle_mass          Decimal?    @db.Decimal(5, 2) // Masse musculaire (facultatif)
+  other_metrics        Json?      // Autres mesures (ex: tour de taille, etc.)
+  created_at           DateTime  @default(now()) // Date de création
+
+  // Relations
+  user User @relation(fields: [user_id], references: [user_id]) // Lien avec l'utilisateur
+
+  @@index([user_id]) // Index pour accélérer la recherche par utilisateur
+}
+
+// Modèle NotificationSql : Notifications pour un utilisateur
+model NotificationSql {
+  notification_id Int       @id @default(autoincrement()) // ID de la notification
+  user_id         Int       // ID de l'utilisateur
+  message         String    // Message de la notification
+  type            String    // Type de notification (ex: "paiement", "rappel")
+  date            DateTime  // Date de la notification
+  is_read         Boolean   @default(false) // Si la notification a été lue ou non
+  created_at      DateTime  @default(now()) // Date de création
+
+  // Relations
+  user User @relation(fields: [user_id], references: [user_id]) // Lien avec l'utilisateur
+
+  @@index([user_id]) // Index pour accélérer la recherche par utilisateur
+}

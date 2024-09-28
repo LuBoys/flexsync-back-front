@@ -1,0 +1,72 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "API FlexSync",
+      "version": "1.0.0"
+    },
+    "paths": {
+      "/api/users/register": {
+        "post": {
+          "summary": "Inscription utilisateur",
+          "tags": ["Utilisateur"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Register"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Utilisateur créé"
+            }
+          }
+        }
+      },
+      "/api/users/login": {
+        "post": {
+          "summary": "Connexion utilisateur",
+          "tags": ["Utilisateur"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Login"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Connexion réussie"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "Register": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "string" },
+            "password": { "type": "string" },
+            "first_name": { "type": "string" },
+            "last_name": { "type": "string" }
+          }
+        },
+        "Login": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "string" },
+            "password": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+  
