@@ -45,6 +45,9 @@ export default function Navbar() {
                 <Link href="/accueil" legacyBehavior passHref>
                   <a className="hover:text-violet-700 transition duration-200">Accueil</a>
                 </Link>
+                <Link href="/dashboard" legacyBehavior passHref>
+                  <a className="hover:text-violet-700 transition duration-200">Test dashboard</a>
+                </Link>
     
               
                 <Link href="/teams" legacyBehavior passHref>
