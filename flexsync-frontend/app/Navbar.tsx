@@ -33,8 +33,8 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white shadow-md py-4 px-6">
-      <div className="flex items-center justify-between">
+    <nav className="bg-white shadow-md py-4 px-6 ">
+      <div className="flex items-center justify-between ">
         <Link href="/accueil" legacyBehavior passHref>
           <a className="text-[#7c3aed] font-bold">Logo</a>
         </Link>
