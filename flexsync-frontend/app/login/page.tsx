@@ -45,17 +45,16 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-violet-600 text-white p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 bg-[#9548E2] text-white p-24 flex-col justify-between ">
         <div className="space-y-6 ">
-          <h1 className="text-4xl font-bold">Bienvenue sur FlexSync</h1>
-          <p className="text-xl">
-            La plateforme qui connecte les coachs et les sportifs pour des performances optimales.
-            Suivez vos progrès, communiquez avec votre coach, et atteignez vos objectifs plus facilement que jamais.
+          <h1 className="text-4xl font-extrabold text-6xl">Bienvenue sur FlexSync</h1>
+          <p className="text-x leading-7 text-xl font-normal text-[#CBD5E1]">
+          Transformez votre coaching avec l’application tout-en-un : gérez abonnements, paiements, programmes et nutrition, tout en restant connecté à vos clients via notifications et chat, le tout sans effort.
           </p>
         </div>
-        <div className="space-y-6 mb-16 ">
-          <Card className="bg-violet-600 transition-all duration-500 ease-in-out border-none shadow-none">
-            <CardContent className="p-6 space-y-4 text-white">
+        <div className="space-y-6 mb-16">
+          <Card className="bg-[#9548E2] transition-all duration-500 ease-in-out border-none shadow-none">
+            <CardContent className="p-0 space-y-4 text-white">
               <div className="flex">
                 {renderStars(testimonials[currentTestimonial].rating)}
               </div>
@@ -82,16 +81,56 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={onSubmit} className="space-y-6">
-            <RadioGroup defaultValue="client" onValueChange={setUserType} className="flex justify-center space-x-4">
-              <div className="flex items-center space-x-2 text-gray-900">
-                <RadioGroupItem value="client" id="client" />
-                <Label htmlFor="client">Client</Label>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-900 ">
-                <RadioGroupItem value="coach" id="coach" />
-                <Label htmlFor="coach">Coach</Label>
-              </div>
-            </RadioGroup>
+          <RadioGroup
+  value={userType}
+  onValueChange={setUserType}
+  className="flex justify-center space-x-4"
+>
+  <div className="group flex items-center space-x-2">
+    <div className="relative">
+      <RadioGroupItem
+        value="client"
+        id="client"
+        className="absolute opacity-0"
+      />
+      <div
+        onClick={() => setUserType('client')}
+        className="w-32 h-12 bg-gray-50 border-2 border-violet-500 group-hover:border-violet-700 transition-all duration-300 ease-in-out rounded-md flex justify-between items-center px-4 cursor-pointer"
+      >
+        <div className="w-4 h-4 border-2 border-violet-500 rounded-full flex justify-center items-center">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              userType === "client" ? "bg-violet-500" : "bg-transparent"
+            }`}
+          />
+        </div>
+        <Label htmlFor="client" className="text-[#9548E2]">Client</Label>
+      </div>
+    </div>
+  </div>
+  <div className="group flex items-center space-x-2">
+    <div className="relative">
+      <RadioGroupItem
+        value="coach"
+        id="coach"
+        className="absolute opacity-0"
+      />
+      <div
+        onClick={() => setUserType('coach')}
+        className="w-32 h-12 bg-gray-50 border-2 border-violet-500 group-hover:border-violet-700 transition-all duration-300 ease-in-out rounded-md flex justify-between items-center px-4 cursor-pointer"
+      >
+        <div className="w-4 h-4 border-2 border-violet-500 rounded-full flex justify-center items-center">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              userType === "coach" ? "bg-violet-500" : "bg-transparent"
+            }`}
+          />
+        </div>
+        <Label htmlFor="coach" className="text-[#9548E2]">Coach</Label>
+      </div>
+    </div>
+  </div>
+</RadioGroup>
 
             <div className="space-y-2 text-gray-900">
               <Label htmlFor="email">Adresse e-mail</Label>
@@ -124,7 +163,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+              className="w-full bg-[#9548E2] hover:bg-violet-700 text-white"
               disabled={isLoading}
             >
               {isLoading ? 'Chargement...' : 'Se connecter'}
@@ -133,7 +172,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full text-gray-900"
+              className="w-full text-gray-900 hover:bg-[#9548E2] hover:text-white"
               onClick={() => console.log('Google login')}
             >
               Se connecter avec Google
