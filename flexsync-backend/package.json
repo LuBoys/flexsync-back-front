@@ -6,6 +6,7 @@
     "start": "node src/app.ts",
     "dev": "NODE_ENV=development npx ts-node-dev src/server.ts",
     "prod": "NODE_ENV=production npx ts-node-dev src/server.ts",
+    "seed": "ts-node src/prisma/seedRoles.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,7 +14,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^5.19.1",
+    "@prisma/client": "^5.20.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",

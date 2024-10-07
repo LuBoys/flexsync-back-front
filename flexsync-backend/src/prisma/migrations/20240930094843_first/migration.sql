@@ -1,4 +1,26 @@
 -- CreateTable
+CREATE TABLE `Club` (
+    `club_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(191) NOT NULL,
+    `address` VARCHAR(191) NULL,
+    `city` VARCHAR(191) NULL,
+    `country` VARCHAR(191) NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`club_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `UserClub` (
+    `user_id` INTEGER NOT NULL,
+    `club_id` INTEGER NOT NULL,
+
+    INDEX `UserClub_club_id_idx`(`club_id`),
+    PRIMARY KEY (`user_id`, `club_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `User` (
     `user_id` INTEGER NOT NULL AUTO_INCREMENT,
     `email` VARCHAR(191) NOT NULL,
@@ -14,9 +36,37 @@ CREATE TABLE `User` (
     `location` VARCHAR(191) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
+    `coach_id` INTEGER NULL,
 
     UNIQUE INDEX `User_email_key`(`email`),
     PRIMARY KEY (`user_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Workout` (
+    `workout_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `user_id` INTEGER NOT NULL,
+    `exercise_name` VARCHAR(191) NOT NULL,
+    `series` INTEGER NOT NULL,
+    `repetitions` INTEGER NOT NULL,
+    `weight` DECIMAL(5, 2) NOT NULL,
+    `workout_date` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `Workout_user_id_idx`(`user_id`),
+    PRIMARY KEY (`workout_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ProgressPicture` (
+    `picture_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `user_id` INTEGER NOT NULL,
+    `picture_url` VARCHAR(191) NOT NULL,
+    `taken_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `ProgressPicture_user_id_idx`(`user_id`),
+    PRIMARY KEY (`picture_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -24,6 +74,7 @@ CREATE TABLE `Role` (
     `role_id` INTEGER NOT NULL AUTO_INCREMENT,
     `role_name` VARCHAR(191) NOT NULL,
 
+    UNIQUE INDEX `Role_role_name_key`(`role_name`),
     PRIMARY KEY (`role_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -165,8 +216,8 @@ CREATE TABLE `InvoiceItem` (
     `description` VARCHAR(191) NOT NULL,
     `amount` DECIMAL(10, 2) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `option_id` INTEGER NOT NULL,
 
-    INDEX `InvoiceItem_invoice_id_idx`(`invoice_id`),
     PRIMARY KEY (`invoice_item_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -176,6 +227,7 @@ CREATE TABLE `Measurement` (
     `user_id` INTEGER NOT NULL,
     `date` DATETIME(3) NOT NULL,
     `weight` DECIMAL(5, 2) NULL,
+    `height` DECIMAL(5, 2) NULL,
     `body_fat_percentage` DECIMAL(5, 2) NULL,
     `muscle_mass` DECIMAL(5, 2) NULL,
     `other_metrics` JSON NULL,
@@ -198,6 +250,21 @@ CREATE TABLE `NotificationSql` (
     INDEX `NotificationSql_user_id_idx`(`user_id`),
     PRIMARY KEY (`notification_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `UserClub` ADD CONSTRAINT `UserClub_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `UserClub` ADD CONSTRAINT `UserClub_club_id_fkey` FOREIGN KEY (`club_id`) REFERENCES `Club`(`club_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `User` ADD CONSTRAINT `User_coach_id_fkey` FOREIGN KEY (`coach_id`) REFERENCES `User`(`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Workout` ADD CONSTRAINT `Workout_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ProgressPicture` ADD CONSTRAINT `ProgressPicture_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `UserRole` ADD CONSTRAINT `UserRole_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `User`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -252,6 +319,9 @@ ALTER TABLE `Payment` ADD CONSTRAINT `Payment_currency_id_fkey` FOREIGN KEY (`cu
 
 -- AddForeignKey
 ALTER TABLE `Invoice` ADD CONSTRAINT `Invoice_payment_id_fkey` FOREIGN KEY (`payment_id`) REFERENCES `Payment`(`payment_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `InvoiceItem` ADD CONSTRAINT `InvoiceItem_option_id_fkey` FOREIGN KEY (`option_id`) REFERENCES `OfferOption`(`option_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `InvoiceItem` ADD CONSTRAINT `InvoiceItem_invoice_id_fkey` FOREIGN KEY (`invoice_id`) REFERENCES `Invoice`(`invoice_id`) ON DELETE RESTRICT ON UPDATE CASCADE;

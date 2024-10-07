@@ -1,5 +1,5 @@
-# Utilise l'image officielle Node.js
-FROM node:20-alpine
+# Utiliser l'image officielle Node.js
+FROM node:20 AS builder
 
 # Définir le répertoire de travail dans le conteneur
 WORKDIR /usr/src/app
@@ -10,10 +10,13 @@ COPY package*.json ./
 # Installer les dépendances
 RUN npm install
 
-# Copier le fichier .env dans le conteneur
-COPY .env .env
+# Copier les fichiers Prisma (incluant le schéma)
+COPY src/prisma ./prisma/
 
-# Copier tout le projet dans le conteneur
+# Générer les binaires Prisma pour la bonne architecture
+RUN npx prisma generate
+
+# Copier tout le reste du projet dans le conteneur
 COPY . .
 
 # Exposer le port 5000

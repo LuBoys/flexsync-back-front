@@ -8,8 +8,11 @@ services:
       - '5000:5000'
     env_file:
       - ./flexsync-backend/.env # Charge les variables d'environnement depuis .env
+    environment:
+      - DATABASE_URL=mysql://root:root@db:3306/flexsync_db # Définis la connection string ici
     depends_on:
       - db
+      - redis
     volumes:
       - ./flexsync-backend:/usr/src/app
       - /usr/src/app/node_modules  # Ignore node_modules local pour éviter les conflits
@@ -53,6 +56,14 @@ services:
       - "8080:80"
     depends_on:
       - db
+    networks:
+      - flexsync-network
+
+  redis:
+    image: redis:alpine
+    container_name: flexsync-redis
+    ports:
+      - '6379:6379'
     networks:
       - flexsync-network
 

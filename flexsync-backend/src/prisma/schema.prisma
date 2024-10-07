@@ -6,7 +6,8 @@ datasource db {
 
 // client generator : Génère le client Prisma que tu utiliseras pour interagir avec la base de données
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64", "linux-arm64-openssl-3.0.x"]
 }
 
 // Enums : Énumérations pour gérer des états fixes
@@ -22,9 +23,33 @@ enum PaymentStatus {
   pending    // Paiement en attente
 }
 
-// Modèles (tables SQL) : Définition de chaque modèle de la base de données
+// Modèle Club : Représente un club où les utilisateurs peuvent s'entraîner
+model Club {
+  club_id       Int      @id @default(autoincrement()) // ID du club
+  name          String   // Nom du club
+  address       String?  // Adresse du club (facultatif)
+  city          String?  // Ville du club (facultatif)
+  country       String?  // Pays du club (facultatif)
+  created_at    DateTime @default(now()) // Date de création du club
+  updated_at    DateTime @updatedAt // Date de mise à jour automatique
 
-// Modèle User : Représente les utilisateurs (clients et coachs)
+  // Relations
+  users         UserClub[] // Plusieurs utilisateurs peuvent s'entraîner dans plusieurs clubs
+}
+
+// Modèle UserClub : Représente l'association entre un utilisateur et un club
+model UserClub {
+  user_id  Int // ID de l'utilisateur
+  club_id  Int // ID du club
+
+  // Relations
+  user     User @relation(fields: [user_id], references: [user_id]) // Lien avec l'utilisateur
+  club     Club @relation(fields: [club_id], references: [club_id]) // Lien avec le club
+
+  @@id([user_id, club_id]) // Clé composée pour éviter les doublons
+  @@index([club_id]) // Index sur club_id pour améliorer les performances
+}
+
 model User {
   user_id          Int           @id @default(autoincrement()) // Identifiant auto-incrémenté
   email            String        @unique // Email unique pour chaque utilisateur
@@ -41,7 +66,7 @@ model User {
   created_at       DateTime      @default(now()) // Date de création de l'utilisateur
   updated_at       DateTime      @updatedAt // Mis à jour automatiquement à chaque modification
 
-  // Relations : Les relations avec d'autres tables
+  // Relations existantes
   userRoles            UserRole[] // Un utilisateur peut avoir plusieurs rôles (client, coach)
   paymentMethods       PaymentMethod[] // Un utilisateur peut avoir plusieurs méthodes de paiement
   measurements         Measurement[] // Un utilisateur peut avoir plusieurs mesures corporelles
@@ -51,7 +76,16 @@ model User {
   subscriptionsAsCoach   Subscription[] @relation("SubscriptionsAsCoach") // Un utilisateur coach a plusieurs abonnements
   workouts              Workout[] // Nouvelles tables ajoutées
   progressPictures      ProgressPicture[] // Nouvelles tables ajoutées
+
+  // Relation avec les clubs
+  userClubs        UserClub[] // Un utilisateur peut s'entraîner dans plusieurs clubs
+
+  // Nouvelle relation Coach-Clients
+  clients          User[] @relation("CoachClients") // Les clients du coach
+  coach            User?  @relation("CoachClients", fields: [coach_id], references: [user_id]) // Le coach d'un client
+  coach_id         Int?   // ID du coach pour ce client
 }
+
 
 // Modèle Workout : Stocke les séries, répétitions et charges de travail
 model Workout {
@@ -87,7 +121,7 @@ model ProgressPicture {
 // Modèle Role : Représente les rôles d'un utilisateur (coach, client)
 model Role {
   role_id   Int       @id @default(autoincrement()) // ID du rôle
-  role_name String    // Nom du rôle (ex: "coach" ou "client")
+  role_name String @unique // Rend le role_name unique
 
   userRoles UserRole[] // Association avec plusieurs utilisateurs
 }
@@ -273,13 +307,13 @@ model InvoiceItem {
   invoice         Invoice   @relation(fields: [invoice_id], references: [invoice_id]) // Lien avec la facture
 }
 
-
 // Modèle Measurement : Mesures corporelles liées à un utilisateur (utile pour les coachings)
 model Measurement {
   measurement_id       Int       @id @default(autoincrement()) // ID de la mesure
   user_id              Int       // ID de l'utilisateur
   date                 DateTime  // Date de la mesure
   weight               Decimal?    @db.Decimal(5, 2) // Poids de l'utilisateur (facultatif)
+  height               Decimal?  @db.Decimal(5, 2)  // Ajout de 'height'
   body_fat_percentage  Decimal?    @db.Decimal(5, 2) // Pourcentage de graisse corporelle (facultatif)
   muscle_mass          Decimal?    @db.Decimal(5, 2) // Masse musculaire (facultatif)
   other_metrics        Json?      // Autres mesures (ex: tour de taille, etc.)

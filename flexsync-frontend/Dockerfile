@@ -1,5 +1,5 @@
 # Étape 1 : Utiliser une image Node.js pour le build
-FROM node:20-alpine AS builder
+FROM node:20 AS builder
 
 # Définir le répertoire de travail
 WORKDIR /usr/src/app
@@ -17,12 +17,12 @@ COPY . .
 RUN npm run build
 
 # Étape 2 : Utiliser une image légère pour exécuter l'application
-FROM node:20-alpine AS runner
+FROM node:20
 
 # Définir le répertoire de travail
 WORKDIR /usr/src/app
 
-# Copier les fichiers de build et les dépendances de production
+# Copier les fichiers de build et les dépendances de production depuis l'étape builder
 COPY --from=builder /usr/src/app/.next ./.next
 COPY --from=builder /usr/src/app/public ./public
 COPY --from=builder /usr/src/app/package*.json ./

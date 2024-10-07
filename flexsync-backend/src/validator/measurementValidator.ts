@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import Joi from 'joi';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
 
 // Schéma de validation pour ajouter une nouvelle mesure corporelle
 export const validateMeasurement = (req: Request, res: Response, next: NextFunction) => {
@@ -18,4 +21,18 @@ export const validateMeasurement = (req: Request, res: Response, next: NextFunct
   }
 
   next(); // Passer au middleware suivant si validation réussie
+};
+
+
+export const checkUserExists = async (req: Request, res: Response, next: NextFunction) => {
+  const { user_id } = req.body;
+  try {
+    const user = await prisma.user.findUnique({ where: { user_id: parseInt(user_id) } });
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+    }
+    next(); // Passer au middleware suivant si l'utilisateur existe
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur du serveur.' });
+  }
 };

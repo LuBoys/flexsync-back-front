@@ -1,23 +1,18 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { addMeasurement, getMeasurementsByUserId } from '../services/measurementService';
 
 // Fonction pour ajouter une nouvelle mesure corporelle
-export const addMeasurement = async (req: Request, res: Response) => {
+export const addMeasurementController = async (req: Request, res: Response) => {
   const { user_id, weight, body_fat_percentage, muscle_mass, other_metrics } = req.body;
 
   try {
-    // Ajouter une nouvelle mesure pour l'utilisateur
-    const measurement = await prisma.measurement.create({
-      data: {
-        user_id: parseInt(user_id), // On s'assure que user_id est bien un entier
-        weight: weight || null, // Si non fourni, stocker null
-        body_fat_percentage: body_fat_percentage || null, // Facultatif
-        muscle_mass: muscle_mass || null, // Facultatif
-        other_metrics: other_metrics || null, // Facultatif
-        date: new Date(), // Date actuelle pour la mesure
-      },
+    const measurement = await addMeasurement({
+      user_id: parseInt(user_id), // S'assurer que user_id est bien un entier
+      weight: weight || null,
+      body_fat_percentage: body_fat_percentage || null,
+      muscle_mass: muscle_mass || null,
+      other_metrics: other_metrics || null,
+      date: new Date(), // Date actuelle pour la mesure
     });
 
     res.status(201).json({ message: 'Mesure ajoutée avec succès', measurement });
@@ -27,15 +22,11 @@ export const addMeasurement = async (req: Request, res: Response) => {
 };
 
 // Fonction pour récupérer l'historique des mesures corporelles d'un utilisateur
-export const getMeasurements = async (req: Request, res: Response): Promise<void> => {
+export const getMeasurementsController = async (req: Request, res: Response): Promise<void> => {
   const { user_id } = req.params;
 
   try {
-    // Récupérer toutes les mesures de l'utilisateur, triées par date
-    const measurements = await prisma.measurement.findMany({
-      where: { user_id: parseInt(user_id) },
-      orderBy: { date: 'asc' }, // Trier par date croissante
-    });
+    const measurements = await getMeasurementsByUserId(parseInt(user_id));
 
     if (!measurements.length) {
       res.status(404).json({ message: 'Aucune mesure trouvée pour cet utilisateur.' });
@@ -47,3 +38,5 @@ export const getMeasurements = async (req: Request, res: Response): Promise<void
     res.status(500).json({ error: error.message });
   }
 };
+export { addMeasurement };
+
