@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation' // Utilisation de useRouter pour la redirection
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import SidebarDashboard from '@/components/SidebarDashboard'
 
 export default function CoachDashboard() {
   const [personalInfo, setPersonalInfo] = useState({
@@ -16,6 +18,18 @@ export default function CoachDashboard() {
     phone: "06 12 34 56 78",
     speciality: "Musculation"
   })
+  const router = useRouter()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    // Vérifier l'état de connexion au chargement de la page
+    const loggedInStatus = localStorage.getItem('isLoggedIn')
+    if (loggedInStatus === 'true') {
+      setIsLoggedIn(true) // Utilisateur connecté
+    } else {
+      router.push('/login') // Redirection vers la page de connexion si non connecté
+    }
+  }, [router])
 
   const students = [
     { id: 1, name: "Alice Martin", age: 28, goal: "Perte de poids" },
@@ -28,12 +42,19 @@ export default function CoachDashboard() {
     { id: 2, from: "Pierre Durand", content: "J'ai une question sur mon programme de musculation." },
   ]
 
+  if (!isLoggedIn) {
+    return null // Rendre la page vide en attendant la redirection
+  }
+
   return (
     <div className="flex h-screen bg-gray-100">
+    <div className="">
+        <SidebarDashboard />
+      </div>
+      {/*
       <div className="w-64 bg-white shadow-md">
-      
         <nav className="mt-6">
-            <p className='text-black font-bold pl-2'>Sport</p>
+          <p className='text-black font-bold pl-2'>Sport</p>
           <a href="#" className="block py-1 px-4 text-gray-700 hover:bg-violet-100 hover:text-violet-600">Programme d'entrainement</a>
           <a href="#" className="block py-1 px-4 text-gray-700 hover:bg-violet-100 hover:text-violet-600">Programme nutrition</a>
           <p className='text-black font-bold pt-4 pl-2'>Administratif</p>
@@ -44,8 +65,11 @@ export default function CoachDashboard() {
           <p className='text-black font-bold pt-4 pl-2'>Aide</p>
           <a href="#" className="block py-1 px-4 text-gray-700 hover:bg-violet-100 hover:text-violet-600">Contactez-nous</a>
           <a href="#" className="block py-1 px-4 text-gray-700 hover:bg-violet-100 hover:text-violet-600">FAQ</a>
-          
         </nav>
+      </div>
+
+      <div className="w-64">
+        <SidebarDashboard />
       </div>
 
       <div className="flex-1 p-8">
@@ -134,6 +158,7 @@ export default function CoachDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+      */}
     </div>
   )
 }
