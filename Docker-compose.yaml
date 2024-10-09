@@ -16,6 +16,8 @@ services:
     volumes:
       - ./flexsync-backend:/usr/src/app
       - /usr/src/app/node_modules  # Ignore node_modules local pour éviter les conflits
+      - /usr/src/app/dist
+    command: sh -c "npm install && npm run dev"
     networks:
       - flexsync-network
 

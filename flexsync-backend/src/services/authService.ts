@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import prisma from '../models/prismaClient';
 
 // Service pour hacher le mot de passe
 export const hashPassword = async (password: string): Promise<string> => {
@@ -14,7 +13,8 @@ export const comparePassword = async (password: string, hash: string): Promise<b
 
 // Service pour générer un JWT
 export const generateToken = (userId: number): string => {
-  return jwt.sign({ sub: userId }, process.env.JWT_SECRET as string, {
+  return jwt.sign({ sub: userId }, process.env.JWT_SECRET_KEY as string, {
     expiresIn: '1h',
   });
 };
+

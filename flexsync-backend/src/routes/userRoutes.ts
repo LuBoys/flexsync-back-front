@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { registerClient, registerCoach, login } from '../controllers/authController';
 import { validateRegisterCoach, validateRegisterClient, validateLogin } from '../validator/userValidator';
 
+
 const router: Router = Router();
 
 // Route d'inscription pour les coachs avec validation

@@ -311,7 +311,7 @@ model InvoiceItem {
 model Measurement {
   measurement_id       Int       @id @default(autoincrement()) // ID de la mesure
   user_id              Int       // ID de l'utilisateur
-  date                 DateTime  // Date de la mesure
+  date                 DateTime  @default(now())  // Ajoute cette ligne pour définir la date par défaut
   weight               Decimal?    @db.Decimal(5, 2) // Poids de l'utilisateur (facultatif)
   height               Decimal?  @db.Decimal(5, 2)  // Ajout de 'height'
   body_fat_percentage  Decimal?    @db.Decimal(5, 2) // Pourcentage de graisse corporelle (facultatif)

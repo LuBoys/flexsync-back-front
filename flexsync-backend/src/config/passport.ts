@@ -1,14 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt, StrategyOptions } from 'passport-jwt';
-import { Request, Response, NextFunction } from 'express';
 
 const prisma = new PrismaClient();
 
 // Options pour configurer la stratégie JWT
 const opts: StrategyOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // Extraire le token JWT
-  secretOrKey: process.env.JWT_SECRET as string, // Assurez-vous que JWT_SECRET est bien défini dans votre fichier .env
+  secretOrKey: process.env.JWT_SECRET_KEY as string, // Assurez-vous que JWT_SECRET_KEY est bien défini dans votre fichier .env
 };
 
 // Configuration de la stratégie JWT

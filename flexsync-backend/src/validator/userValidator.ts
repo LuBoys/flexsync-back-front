@@ -13,7 +13,7 @@ export const validateRegisterCoach = (req: Request, res: Response, next: NextFun
     certifications: Joi.string().optional(),
     experience_years: Joi.number().integer().min(0).optional(),
     phone_number: Joi.string().optional(),
-    profile_picture: Joi.string().optional(),
+    profile_picture: Joi.string().allow(null, '').optional(),
     location: Joi.string().optional(),
   });
 
@@ -38,7 +38,7 @@ export const validateRegisterClient = (req: Request, res: Response, next: NextFu
     body_fat_percentage: Joi.number().precision(2).optional(),
     muscle_mass: Joi.number().precision(2).optional(),
     phone_number: Joi.string().optional(),
-    profile_picture: Joi.string().optional(),
+    profile_picture: Joi.string().uri().allow(null).optional(), // Autorise null ou une URL
     location: Joi.string().optional(),
   });
 
