@@ -3,6 +3,8 @@ import swaggerUi from 'swagger-ui-express';
 import passport from './config/passport';  
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import coachClientRoutes from './routes/coachClientRoutes';
+
 
 // Importer les routes
 import userRoutes from './routes/userRoutes';
@@ -34,6 +36,10 @@ app.use(userRoutes);
 
 // Routes pour les mesures corporelles
 app.use('/api/measurements', measurementRoutes);
+
+
+app.use('/api/coach-client', coachClientRoutes);
+
 
 // Middleware global de gestion des erreurs
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

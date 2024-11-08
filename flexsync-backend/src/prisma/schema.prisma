@@ -80,11 +80,27 @@ model User {
   // Relation avec les clubs
   userClubs        UserClub[] // Un utilisateur peut s'entraîner dans plusieurs clubs
 
-  // Nouvelle relation Coach-Clients
-  clients          User[] @relation("CoachClients") // Les clients du coach
-  coach            User?  @relation("CoachClients", fields: [coach_id], references: [user_id]) // Le coach d'un client
-  coach_id         Int?   // ID du coach pour ce client
+  // Relation bidirectionnelle coach-client via CoachClientRelation
+  clientsCoach     CoachClientRelation[] @relation("CoachToClient") // Clients associés à ce coach
+  coachesClient    CoachClientRelation[] @relation("ClientToCoach") // Coachs associés à ce client
 }
+
+
+
+model CoachClientRelation {
+  coach_id  Int  // ID du coach
+  client_id Int  // ID du client
+
+  coach  User @relation("ClientToCoach", fields: [coach_id], references: [user_id])  // Relation pour le coach (spécifie fields et references)
+  client User @relation("CoachToClient", fields: [client_id], references: [user_id]) // Relation pour le client (spécifie fields et references)
+
+  @@id([coach_id, client_id])  // Clé composée pour éviter les doublons
+  @@index([client_id])  // Ajout d'un index pour les performances
+}
+
+
+
+
 
 
 // Modèle Workout : Stocke les séries, répétitions et charges de travail
